@@ -1,32 +1,32 @@
 /*
- * ORACLE PROPRIETARY/CONFIDENTIAL. Use is subject to license terms.
+ * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
+ * This code is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU General Public License version 2 only, as
+ * published by the Free Software Foundation.  Oracle designates this
+ * particular file as subject to the "Classpath" exception as provided
+ * by Oracle in the LICENSE file that accompanied this code.
  *
+ * This code is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+ * version 2 for more details (a copy is included in the LICENSE file that
+ * accompanied this code).
  *
+ * You should have received a copy of the GNU General Public License version
+ * 2 along with this work; if not, write to the Free Software Foundation,
+ * Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
- *
+ * Please contact Oracle, 500 Oracle Parkway, Redwood Shores, CA 94065 USA
+ * or visit www.oracle.com if you need additional information or have any
+ * questions.
  */
 
 /*
- *
- *
- *
- *
+ * This file is available under and governed by the GNU General Public
+ * License version 2 only, as published by the Free Software Foundation.
+ * However, the following notice accompanied the original version of this
+ * file:
  *
  * Written by Doug Lea with assistance from members of JCP JSR-166
  * Expert Group and released to the public domain, as explained at
@@ -196,8 +196,8 @@ public class CyclicBarrier {
      * Main barrier code, covering the various policies.
      */
     private int dowait(boolean timed, long nanos)
-        throws InterruptedException, BrokenBarrierException,
-               TimeoutException {
+            throws InterruptedException, BrokenBarrierException,
+            TimeoutException {
         final ReentrantLock lock = this.lock;
         lock.lock();
         try {
@@ -210,11 +210,13 @@ public class CyclicBarrier {
                 breakBarrier();
                 throw new InterruptedException();
             }
-
+            // 将“count计数器”-1
             int index = --count;
+            // 如果index=0，则意味着“有parties个线程到达barrier”。
             if (index == 0) {  // tripped
                 boolean ranAction = false;
                 try {
+                    // 如果barrierCommand不为null，则执行该动作。
                     final Runnable command = barrierCommand;
                     if (command != null)
                         command.run();
@@ -228,13 +230,17 @@ public class CyclicBarrier {
             }
 
             // loop until tripped, broken, interrupted, or timed out
+            // 当前线程一直阻塞，直到“有parties个线程到达barrier” 或 “当前线程被中断” 或 “超时”这3者之一发生，
+            // 当前线程才继续执行。
             for (;;) {
                 try {
+                    // 如果不是“超时等待”，则调用awati()进行等待；否则，调用awaitNanos()进行等待。
                     if (!timed)
                         trip.await();
                     else if (nanos > 0L)
                         nanos = trip.awaitNanos(nanos);
                 } catch (InterruptedException ie) {
+                    // 如果等待过程中，线程被中断，则执行下面的函数。
                     if (g == generation && ! g.broken) {
                         breakBarrier();
                         throw ie;
@@ -245,7 +251,7 @@ public class CyclicBarrier {
                         Thread.currentThread().interrupt();
                     }
                 }
-
+                // 如果“当前generation已经损坏”，则抛出异常。
                 if (g.broken)
                     throw new BrokenBarrierException();
 
@@ -429,9 +435,9 @@ public class CyclicBarrier {
      *         present) failed due to an exception
      */
     public int await(long timeout, TimeUnit unit)
-        throws InterruptedException,
-               BrokenBarrierException,
-               TimeoutException {
+            throws InterruptedException,
+            BrokenBarrierException,
+            TimeoutException {
         return dowait(true, unit.toNanos(timeout));
     }
 
